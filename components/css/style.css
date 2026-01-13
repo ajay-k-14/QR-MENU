@@ -1048,7 +1048,6 @@ body {
   }
 
   .cart-sidebar {
-    position: fixed !important;
     max-width: 100%;
     width: 100%;
     height: auto;
