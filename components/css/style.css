@@ -1063,6 +1063,7 @@ body {
 
   .cart-sidebar.active {
     transform: translateY(0);
+    pointer-events: auto;
   }
 
   .cart-content {
