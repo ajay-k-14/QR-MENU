@@ -1047,7 +1047,7 @@ body {
     margin-bottom: 2rem;
   }
 
-  /* .cart-sidebar {
+  .cart-sidebar {
     max-width: 100%;
     width: 100%;
     height: auto;
@@ -1062,7 +1062,7 @@ body {
 
   .cart-sidebar.active {
     transform: translateY(0);
-  } */
+  }
 
   .cart-content {
     max-height: 40vh;
