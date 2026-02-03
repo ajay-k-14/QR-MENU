@@ -33,19 +33,42 @@ app.use(express.json());
 app.use(express.static('.'));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/qr-menu')
-  .then(() => {
+const PRIMARY_MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/qr-menu';
+
+async function establishMongoConnection() {
+  try {
+    await mongoose.connect(PRIMARY_MONGODB_URI);
     const dbName = mongoose.connection.name;
     const dbHost = mongoose.connection.host || (mongoose.connection.client && mongoose.connection.client.s && mongoose.connection.client.s.options && mongoose.connection.client.s.options.servers) || null;
     console.log(`✓ MongoDB connected — database: ${dbName}`);
     if (dbHost) console.log(`  host: ${JSON.stringify(dbHost)}`);
-  })
-  .catch(err => {
+    return;
+  } catch (err) {
     console.error('✗ MongoDB connection error:');
     console.error(err && err.message ? err.message : err);
     console.error('Ensure your MONGODB_URI in .env is correct and your Atlas IP whitelist allows this IP.');
-    // Continue running without DB if connection fails (fallback to in-memory storage)
-  });
+
+    // If this looks like an SRV DNS failure for Atlas, attempt a local fallback
+    const isSrv = PRIMARY_MONGODB_URI && PRIMARY_MONGODB_URI.startsWith('mongodb+srv://');
+    const dnsError = err && (err.code === 'ENOTFOUND' || (err.message && err.message.includes('querySrv')));
+    if (isSrv && dnsError) {
+      const fallback = process.env.LOCAL_MONGODB_URI || 'mongodb://localhost:27017/qr-menu';
+      console.warn(`SRV DNS lookup failed for Atlas host; attempting fallback MongoDB at ${fallback}`);
+      try {
+        await mongoose.connect(fallback);
+        console.log(`✓ Connected to fallback MongoDB — ${fallback}`);
+        return;
+      } catch (err2) {
+        console.error('✗ Fallback MongoDB connection also failed:');
+        console.error(err2 && err2.message ? err2.message : err2);
+      }
+    }
+
+    console.error('Proceeding with in-memory fallback storage.');
+  }
+}
+
+establishMongoConnection();
 
 // Order Schema and Model
 const orderSchema = new mongoose.Schema({
