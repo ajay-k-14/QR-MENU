@@ -48,19 +48,25 @@ async function establishMongoConnection() {
     console.error(err && err.message ? err.message : err);
     console.error('Ensure your MONGODB_URI in .env is correct and your Atlas IP whitelist allows this IP.');
 
-    // If this looks like an SRV DNS failure for Atlas, attempt a local fallback
+    // If this looks like an SRV DNS failure for Atlas, optionally attempt a fallback
     const isSrv = PRIMARY_MONGODB_URI && PRIMARY_MONGODB_URI.startsWith('mongodb+srv://');
     const dnsError = err && (err.code === 'ENOTFOUND' || (err.message && err.message.includes('querySrv')));
     if (isSrv && dnsError) {
-      const fallback = process.env.LOCAL_MONGODB_URI || 'mongodb://localhost:27017/qr-menu';
-      console.warn(`SRV DNS lookup failed for Atlas host; attempting fallback MongoDB at ${fallback}`);
-      try {
-        await mongoose.connect(fallback);
-        console.log(`✓ Connected to fallback MongoDB — ${fallback}`);
-        return;
-      } catch (err2) {
-        console.error('✗ Fallback MongoDB connection also failed:');
-        console.error(err2 && err2.message ? err2.message : err2);
+      const fallback = process.env.LOCAL_MONGODB_URI;
+      if (fallback) {
+        console.warn(`SRV DNS lookup failed for Atlas host; attempting fallback MongoDB at ${fallback}`);
+        try {
+          await mongoose.connect(fallback);
+          console.log(`✓ Connected to fallback MongoDB — ${fallback}`);
+          return;
+        } catch (err2) {
+          console.error('✗ Fallback MongoDB connection also failed:');
+          console.error(err2 && err2.message ? err2.message : err2);
+        }
+      } else {
+        console.error('SRV DNS lookup failed and no LOCAL_MONGODB_URI provided.');
+        console.error('Set `LOCAL_MONGODB_URI` in your `.env` to enable an automatic local fallback,');
+        console.error('or correct `MONGODB_URI` to a reachable Atlas connection string.');
       }
     }
 
