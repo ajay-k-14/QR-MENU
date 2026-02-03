@@ -30,159 +30,46 @@ Running on port 5000
 http://localhost:5000
 ```
 
-**From another device on same network:**
-```
-http://192.168.1.100:5000  (replace with your IP)
-```
+# Deployment Guide — Minimal files for production
 
-### Testing:
-1. Open customer page on Device A: `http://192.168.1.100:5000`
-2. Open staff dashboard on Device B: `http://192.168.1.100:5000/staff-dashboard.html`
-3. Place order from Device A → See it appear instantly on Device B ✅
+Purpose: this file lists the minimal set of files/folders required to deploy the backend (and optional static frontend) and gives the simplest run steps.
 
----
+## Minimal files required for backend deployment
+- `backend/server.js` — Express + Socket.IO server (main server code)
+- `backend/package.json` — backend dependencies and start scripts
+- `backend/.env.example` — example environment variables (copy to `.env` and edit)
 
-## **Global Access (From Anywhere on Internet)**
+Optional (if you want the repo to also serve the static frontend):
+- `index.html`, `staff-dashboard.html`, `staff-login.html` (root)
+- `components/` (static assets: `js/`, `css/`, `image/`)
 
-### Prerequisites:
-- Your server running 24/7
-- Router/ISP that allows port forwarding
-- Static IP or Dynamic DNS
+If you only deploy the backend service, you can omit the optional frontend files and serve the frontend separately (CDN, S3, Netlify, etc.).
 
-### Step 1: Get Your Public IP
-```powershell
-# Open PowerShell and run:
-(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content
-```
-This gives your public IP (e.g., `203.45.67.89`)
+## Quick deploy steps (minimal)
+1. Copy the `backend/` folder to your server (or clone the repo and keep only `backend/`).
+2. Create a `.env` in `backend/` based on `.env.example` and set `MONGODB_URI` and `PORT`.
+3. On the server run:
 
-### Step 2: Enable Port Forwarding (Router Setup)
-
-On your router (192.168.1.1 typically):
-- Forward external port **5000** to your computer's IP (**192.168.1.100:5000**)
-- This makes your server accessible from the internet
-
-### Step 3: Test Global Access
-
-**From anywhere, use:**
-```
-http://YOUR_PUBLIC_IP:5000
-```
-
-Example:
-```
-Customer page: http://203.45.67.89:5000
-Staff dashboard: http://203.45.67.89:5000/staff-dashboard.html
-```
-
----
-
-## **Domain Setup (Optional but Recommended)**
-
-If your IP keeps changing, use Dynamic DNS:
-
-1. Get a free domain from [noip.com](https://www.noip.com) or [duckdns.org](https://www.duckdns.org)
-2. Map your dynamic IP to a domain name
-3. Share the domain instead of IP:
-```
-http://your-restaurant.duckdns.org:5000
-```
-
----
-
-## **For Production (Always Running)**
-
-### Option 1: Windows Task Scheduler
-1. Create batch file `start-server.bat`:
-```batch
-cd D:\Achu\Work\QR-MENU
+```bash
+cd backend
+npm install
 npm start
-pause
 ```
 
-2. Open Task Scheduler
-3. Create task to run this batch file at system startup
-4. Set to run whether user is logged in or not
+Notes:
+- The backend falls back to in-memory storage if MongoDB is unreachable, but for production use a running MongoDB instance (local or Atlas).
+- If serving the optional static frontend from the same server, place those files in the same folder where `server.js` can serve them (or configure a reverse proxy).
 
-### Option 2: Run as Service
-Use `nssm` (Node Service Simple Manager):
-```powershell
-# Install nssm
-choco install nssm
+## Environment variables
+- `MONGODB_URI` — MongoDB connection string (required for persisted orders)
+- `PORT` — port to listen on (default `5000`)
 
-# Install service
-nssm install QRMenuServer "C:\nodejs\node.exe" "D:\Achu\Work\QR-MENU\server.js"
-
-# Start service
-nssm start QRMenuServer
-
-# Remove service if needed
-nssm remove QRMenuServer
-```
+## Recommended production considerations (brief)
+- Use a process manager (PM2, systemd, or NSSM on Windows) to keep the process running.
+- Use HTTPS in front (reverse proxy like Nginx or a managed TLS service).
+- Keep `backend/.env` out of version control; commit only `.env.example`.
 
 ---
 
-## **Quick Access URLs Cheat Sheet**
-
-| Access Type | URL |
-|---|---|
-| **Localhost (Your Computer)** | `http://localhost:5000` |
-| **Local Network** | `http://192.168.1.100:5000` |
-| **Global (Public IP)** | `http://203.45.67.89:5000` |
-| **Global (Domain)** | `http://your-domain.duckdns.org:5000` |
-| **Staff Dashboard** | Add `/staff-dashboard.html` to any URL above |
-
----
-
-## **Troubleshooting**
-
-### "Connection Refused" Error
-- Ensure server is running: `npm run dev`
-- Check if port 5000 is blocked by firewall
-
-### "Connection Timeout" (Global Access)
-- Port forwarding not enabled on router
-- Router doesn't allow port 5000 (try port 80 or 8080)
-- ISP blocking inbound connections (call support)
-
-### Database Not Found
-- Ensure MongoDB is running: `Get-Service MongoDB`
-- Or use MongoDB Atlas (cloud): Update `MONGODB_URI` in `.env`
-
-### Orders Not Syncing
-- Check browser console (F12) for errors
-- Ensure WebSocket connection shows as "Connected"
-- Verify both devices are on same network or using same global URL
-
----
-
-## **Security Notes**
-
-⚠️ For global access:
-1. Change default staff password in `staff-login.js`
-2. Consider using HTTPS (requires SSL certificate)
-3. Use a VPN if accessing through public network
-4. Keep MongoDB secured (use auth)
-
----
-
-## **Database Setup**
-
-### Local MongoDB
-```powershell
-Get-Service MongoDB
-Start-Service MongoDB
-```
-
-### Cloud MongoDB (MongoDB Atlas)
-1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Create free cluster
-3. Get connection string
-4. Update `.env`:
-```
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/qr-menu
-```
-
----
-
-**Your system is now ready for local network AND global access!** 🚀
+If you want, I can: remove frontend files from the repository, move the root `server.js` into `backend/` (already copied), or update the root `package.json` to point to the backend. Which would you like next?
+Staff dashboard: http://203.45.67.89:5000/staff-dashboard.html
