@@ -35,7 +35,7 @@ http://localhost:5000
 Purpose: this file lists the minimal set of files/folders required to deploy the backend (and optional static frontend) and gives the simplest run steps.
 
 ## Minimal files required for backend deployment
-- `backend/server.js` — Express + Socket.IO server (main server code)
+- `components/backend/server.js` — Express + Socket.IO server (main server code)
 - `backend/package.json` — backend dependencies and start scripts
 - `backend/.env.example` — example environment variables (copy to `.env` and edit)
 

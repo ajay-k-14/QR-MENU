@@ -2,11 +2,11 @@
   "name": "qr-menu-restaurant",
   "version": "1.0.0",
   "description": "QR-based restaurant menu and order management system with real-time staff dashboard",
-  "main": "backend/server.js",
+  "main": "components/backend/server.js",
   "type": "module",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "node --watch backend/server.js"
+    "start": "node components/backend/server.js",
+    "dev": "node --watch components/backend/server.js"
   },
   "keywords": ["restaurant", "menu", "orders", "qr-code"],
   "author": "",
